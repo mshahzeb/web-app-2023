@@ -23,7 +23,7 @@ func connect() (*sql.DB, error) {
 	return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(db:3306)/example", string(bin)))
 }
 
-func blogHandler(w http.ResponseWriter, r *http.Request) {
+func addVote(w http.ResponseWriter, r *http.Request) {
 	db, err := connect()
 	if err != nil {
 		w.WriteHeader(500)
@@ -31,18 +31,59 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT title FROM blog")
+	if _, err = db.Exec("INSERT INTO votes (`time`, `count`) VALUES (NOW(), '1')"); err != nil {
+		log.Print(err)
+		w.WriteHeader(500)
+		return
+	}
+	json.NewEncoder(w).Encode("OK")
+}
+
+
+func countVotes(w http.ResponseWriter, r *http.Request) {
+	db, err := connect()
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-	var titles []string
-	for rows.Next() {
-		var title string
-		err = rows.Scan(&title)
-		titles = append(titles, title)
+	defer db.Close()
+
+	var votes string
+	err = db.QueryRow("SELECT SUM(count) AS votes FROM votes").Scan(&votes)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(500)
+		return
 	}
-	json.NewEncoder(w).Encode(titles)
+	json.NewEncoder(w).Encode(votes)
+}
+
+type Votes struct {
+	Id int
+	Time string
+	Count int
+}
+
+func getVotes(w http.ResponseWriter, r *http.Request) {
+	db, err := connect()
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM votes")
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	var votes []Votes
+	for rows.Next() {
+		vote := new(Votes)
+		err = rows.Scan(&vote.Id, &vote.Time, &vote.Count)
+		votes = append(votes, *vote)
+	}
+	json.NewEncoder(w).Encode(votes)
 }
 
 func main() {
@@ -53,7 +94,9 @@ func main() {
 
 	log.Print("Listening 8000")
 	r := mux.NewRouter()
-	r.HandleFunc("/", blogHandler)
+	r.HandleFunc("/add_vote", addVote)
+	r.HandleFunc("/count_votes", countVotes)
+	r.HandleFunc("/get_votes", getVotes)
 	log.Fatal(http.ListenAndServe(":8000", handlers.LoggingHandler(os.Stdout, r)))
 }
 
@@ -71,18 +114,18 @@ func prepare() error {
 		time.Sleep(time.Second)
 	}
 
-	if _, err := db.Exec("DROP TABLE IF EXISTS blog"); err != nil {
+	if _, err := db.Exec("DROP TABLE IF EXISTS primary_db"); err != nil {
 		return err
 	}
 
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS blog (id int NOT NULL AUTO_INCREMENT, title varchar(255), PRIMARY KEY (id))"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS votes (id int NOT NULL AUTO_INCREMENT, time datetime, count int, PRIMARY KEY (id))"); err != nil {
 		return err
 	}
 
-	for i := 0; i < 5; i++ {
-		if _, err := db.Exec("INSERT INTO blog (title) VALUES (?);", fmt.Sprintf("Blog post #%d", i)); err != nil {
-			return err
-		}
-	}
+	// for i := 0; i < 6; i++ {
+	// 	if _, err := db.Exec("INSERT INTO blog (title) VALUES (?);", fmt.Sprintf("Blog post #%d", i)); err != nil {
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
