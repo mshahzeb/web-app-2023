@@ -65,6 +65,7 @@ services:
     ports:
       - 80:80
       - 8080:8080
+      - 3000:80
     depends_on:
       - backend
       - frontend
