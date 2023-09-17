@@ -29,7 +29,7 @@ var server = "http://localhost:8000";
 
 function App() {
   const [votes, setVotes] = useState(0);
-  const [votesDetails, setVotesDetails] = useState(0);
+  const [votesDetails, setVotesDetails] = useState([]);
   const [open, setOpen] = React.useState(false);
   const handleClickOpen = () => {
     getVotes();
@@ -73,7 +73,6 @@ function App() {
       })
       .catch((error) => {
         console.log(error);
-        alert(error);
       });
   }
 
@@ -145,15 +144,16 @@ function App() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.values(votesDetails).map((row) => (
-                  <TableRow
-                    key={row.Id}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell align="center">{row.Time}</TableCell>
-                    <TableCell align="center">{row.Count}</TableCell>
-                  </TableRow>
-                ))}
+                {votesDetails !== null &&
+                  Object.values(votesDetails).map((row) => (
+                    <TableRow
+                      key={row.Id}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell align="center">{row.Time}</TableCell>
+                      <TableCell align="center">{row.Count}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
