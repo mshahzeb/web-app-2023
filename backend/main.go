@@ -15,15 +15,39 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func connect() (*sql.DB, error) {
-	bin, err := ioutil.ReadFile("/run/secrets/db-password")
+	//bin, err := ioutil.ReadFile("/run/secrets/db-password")
+	bin, err := ioutil.ReadFile("../db/password.txt")
 	if err != nil {
 		return nil, err
 	}
-	return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(db:3306)/example", string(bin)))
+	// return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(db:3306)/example", string(bin)))
+	return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(localhost:3306)/example", string(bin)))
+}
+
+func clearVotes(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	db, err := connect()
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	defer db.Close()
+
+	if _, err = db.Exec("TRUNCATE TABLE votes"); err != nil {
+		log.Print(err)
+		w.WriteHeader(500)
+		return
+	}
+	json.NewEncoder(w).Encode("OK")
 }
 
 func addVote(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	db, err := connect()
 	if err != nil {
 		w.WriteHeader(500)
@@ -39,8 +63,8 @@ func addVote(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("OK")
 }
 
-
 func countVotes(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	db, err := connect()
 	if err != nil {
 		w.WriteHeader(500)
@@ -48,7 +72,7 @@ func countVotes(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	var votes string
+	var votes int
 	err = db.QueryRow("SELECT SUM(count) AS votes FROM votes").Scan(&votes)
 	if err != nil {
 		log.Print(err)
@@ -65,6 +89,7 @@ type Votes struct {
 }
 
 func getVotes(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	db, err := connect()
 	if err != nil {
 		w.WriteHeader(500)
@@ -94,6 +119,7 @@ func main() {
 
 	log.Print("Listening 8000")
 	r := mux.NewRouter()
+	r.HandleFunc("/clear_votes", clearVotes)
 	r.HandleFunc("/add_vote", addVote)
 	r.HandleFunc("/count_votes", countVotes)
 	r.HandleFunc("/get_votes", getVotes)
