@@ -25,7 +25,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-var server = "http://localhost:8000";
+var server = "http://localhost:8080";
 
 function App() {
   const [votes, setVotes] = useState(0);

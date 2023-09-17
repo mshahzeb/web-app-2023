@@ -23,13 +23,18 @@ func enableCors(w *http.ResponseWriter) {
 }
 
 func connect() (*sql.DB, error) {
-	//bin, err := ioutil.ReadFile("/run/secrets/db-password")
-	bin, err := ioutil.ReadFile("../db/password.txt")
+	bin, err := ioutil.ReadFile("/run/secrets/db-password")
 	if err != nil {
 		return nil, err
 	}
-	// return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(db:3306)/example", string(bin)))
-	return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(localhost:3306)/example", string(bin)))
+	return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(db:3306)/example", string(bin)))
+	
+	// For local testing
+	// bin, err := ioutil.ReadFile("../db/password.txt")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return sql.Open("mysql", fmt.Sprintf("root:%s@tcp(localhost:3306)/example", string(bin)))
 }
 
 func clearVotes(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +140,6 @@ func main() {
 	r.HandleFunc("/add_vote", addVote)
 	r.HandleFunc("/count_votes", countVotes)
 	r.HandleFunc("/get_votes", getVotes)
-	// http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
 	r.HandleFunc("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}).ServeHTTP)
 	log.Fatal(http.ListenAndServe(":8000", handlers.LoggingHandler(os.Stdout, r)))
 }

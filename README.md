@@ -4,75 +4,24 @@
 
 You can open this sample in the Dev Environments feature of Docker Desktop version 4.12 or later.
 
-[Open in Docker Dev Environments <img src="../open_in_new.svg" alt="Open in Docker Dev Environments" align="top"/>](https://open.docker.com/dashboard/dev-envs?url=https://github.com/docker/awesome-compose/tree/master/nginx-golang-mysql)
+[Open in Docker Dev Environments <img src="./media/open_in_new.svg" alt="Open in Docker Dev Environments" align="top"/>](https://open.docker.com/dashboard/dev-envs?url=https://github.com/mshahzeb/web-app-2023)
 
-### Go server with an Nginx proxy and a MariaDB/MySQL database
+### Go server with an Nginx proxy and a MySQL database with a React Frontend
 
-Project structure:
-```
-.
-├── backend
-│   ├── Dockerfile
-│   ├── go.mod
-│   ├── go.sum
-│   └── main.go
-├── db
-│   └── password.txt
-├── proxy
-│   └── nginx.conf
-├── compose.yaml
-└── README.md
-```
-
-[_compose.yaml_](compose.yaml)
-```yaml
-services:
-  backend:
-    build:
-      context: backend
-      target: builder
-    ...
-  db:
-    # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb:10-focal
-    # If you really want to use MySQL, uncomment the following line
-    #image: mysql:8
-    ...
-  proxy:
-    image: nginx
-    volumes:
-      - type: bind
-        source: ./proxy/nginx.conf
-        target: /etc/nginx/conf.d/default.conf
-        read_only: true
-    ports:
-    - 80:80
-    ...
-```
-The compose file defines an application with three services `proxy`, `backend` and `db`.
-When deploying the application, docker compose maps port 80 of the proxy service container to port 80 of the host as specified in the file.
-Make sure port 80 on the host is not already being in use.
-
-> ℹ️ **_INFO_**  
-> For compatibility purpose between `AMD64` and `ARM64` architecture, we use a MariaDB as database instead of MySQL.  
-> You still can use the MySQL image by uncommenting the following line in the Compose file   
-> `#image: mysql:8`
+A simple web application with a React frontend and a Go + MySQL backend.
+Nginx server handles web requests for both React and Go.
 
 ## Deploy with docker compose
 
 ```shell
 $ docker compose up -d
-Creating network "nginx-golang-mysql_default" with the default driver
-Building backend
-Step 1/8 : FROM golang:1.13-alpine AS build
-1.13-alpine: Pulling from library/golang
 ...
-Successfully built 5f7c899f9b49
-Successfully tagged nginx-golang-mysql_proxy:latest
-WARNING: Image for service proxy was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
-Creating nginx-golang-mysql_db_1 ... done
-Creating nginx-golang-mysql_backend_1 ... done
-Creating nginx-golang-mysql_proxy_1   ... done
+[+] Running 6/6
+ [+] Running 4/4
+ ✔ Container web-app-2023-db-1        Healthy                                                0.5s 
+ ✔ Container web-app-2023-backend-1   Running                                                0.0s 
+ ✔ Container web-app-2023-frontend-1  Running                                                0.0s 
+ ✔ Container web-app-2023-proxy-1     Running                                                0.0s 
 ```
 
 ## Expected result
@@ -80,20 +29,29 @@ Creating nginx-golang-mysql_proxy_1   ... done
 Listing containers must show three containers running and the port mapping as below:
 ```shell
 $ docker compose ps
-NAME                           COMMAND                  SERVICE             STATUS              PORTS
-nginx-golang-mysql-backend-1   "/code/bin/backend"      backend             running
-nginx-golang-mysql-db-1        "docker-entrypoint.s…"   db                  running (healthy)   3306/tcp
-nginx-golang-mysql-proxy-1     "/docker-entrypoint.…"   proxy               running             0.0.0.0:80->80/tcp
-l_db_1
+NAME                      IMAGE                   COMMAND                  SERVICE             CREATED             STATUS                    PORTS
+web-app-2023-backend-1    web-app-2023-backend    "/code/bin/backend"      backend             About an hour ago   Up 59 minutes             
+web-app-2023-db-1         mysql:8                 "docker-entrypoint.s…"   db                  31 minutes ago      Up 31 minutes (healthy)   0.0.0.0:3306->3306/tcp, 33060/tcp
+web-app-2023-frontend-1   web-app-2023-frontend   "docker-entrypoint.s…"   frontend            About an hour ago   Up 59 minutes             3000/tcp
+web-app-2023-proxy-1      nginx                   "/docker-entrypoint.…"   proxy               About an hour ago   Up 59 minutes             0.0.0.0:80->80/tcp, 0.0.0.0:8080->8080/tcp
 ```
 
-After the application starts, navigate to `http://localhost:80` in your web browser or run:
-```shell
-$ curl localhost:80
-["Blog post #0","Blog post #1","Blog post #2","Blog post #3","Blog post #4"]
-```
+After the application starts, navigate to `http://localhost:80` in your web browser.
+![web-app](./media/webApp2023.png "Voting Web App")
 
 Stop and remove the containers
 ```shell
 $ docker compose down
+```
+
+## Running k6
+
+Set the appropriate environment variables in a .env file in the project root
+```
+K6_PROJECT_ID=<k6 project ID for testing>
+```
+
+Use the following command to run the test locally and send test report to k6 cloud
+```
+k6 run --out cloud k6-tests/test1.js
 ```
