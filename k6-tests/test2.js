@@ -3,11 +3,11 @@ import { sleep } from "k6";
 
 export const options = {
   vus: 1000,
-  duration: "30s",
+  duration: "10s",
   ext: {
     loadimpact: {
       // Project: webApp2023
-      projectID: 3659118,
+      projectID: __ENV.K6_PROJECT_ID,
       // Test runs with the same name groups test runs together
       name: "Backend stress test",
     },

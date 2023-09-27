@@ -1,4 +1,5 @@
 services:
+  # Go
   backend:
     build:
       context: backend
@@ -12,6 +13,7 @@ services:
       db:
         condition: service_healthy
 
+  # MySQL
   db:
     image: mysql:8
     command: "--default-authentication-plugin=mysql_native_password --general-log=1 --general-log-file=/var/log/mysql/mysql.log"
@@ -39,6 +41,7 @@ services:
     ports:
       - 3306:3306
 
+  # React
   frontend:
     build:
       context: frontend
@@ -53,6 +56,7 @@ services:
     depends_on:
       - backend
 
+  # Nginx
   proxy:
     image: nginx
     volumes:
