@@ -45,7 +45,6 @@ services:
   frontend:
     build:
       context: frontend
-      target: development
     expose:
       - 3000
     volumes:
