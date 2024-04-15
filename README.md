@@ -11,6 +11,18 @@ You can open this sample in the Dev Environments feature of Docker Desktop versi
 A simple web application with a React frontend and a Go + MySQL backend.
 Nginx server handles web requests for both React and Go.
 
+## Enabling FARO
+WIP
+
+## Env variables
+Create an `env.local` file in `frontend/` and set the following values
+| Name                                 | Value                                                        |
+|--------------------------------------|--------------------------------------------------------------|
+| REACT_APP_API_URL                    | http://localhost:8080                                        |
+| REACT_APP_FARO_COLLECTOR_URL         | https://faro-collector-prod-us-east-0.grafana.net/collect/xyz|
+| REACT_APP_FARO_COLLECTOR_NAME        | web-app-2023                                                 |
+| REACT_APP_FARO_COLLECTOR_ENVIRONMENT | production                                                   |
+
 ## Deploy with docker compose
 
 ```shell

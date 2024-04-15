@@ -12,12 +12,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: always
 
   # MySQL
   db:
     image: mysql:8
     command: "--default-authentication-plugin=mysql_native_password --general-log=1 --general-log-file=/var/log/mysql/mysql.log"
-    restart: always
     healthcheck:
       test:
         [
@@ -40,6 +40,7 @@ services:
       - 3306
     ports:
       - 3306:3306
+    restart: always
 
   # React
   frontend:
@@ -52,8 +53,12 @@ services:
       - /code/node_modules
     networks:
       - public
+    env_file:
+      - path: ./frontend/.env.local
+        required: true
     depends_on:
       - backend
+    restart: always
 
   # Nginx
   proxy:
@@ -72,6 +77,7 @@ services:
     depends_on:
       - backend
       - frontend
+    restart: always
 
 networks:
   public:

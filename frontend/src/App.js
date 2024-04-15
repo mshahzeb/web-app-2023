@@ -21,11 +21,33 @@ import Paper from "@mui/material/Paper";
 import "./App.css";
 import Slide from "@mui/material/Slide";
 
+
+import { getWebInstrumentations, initializeFaro } from "@grafana/faro-web-sdk";
+import { TracingInstrumentation } from "@grafana/faro-web-tracing";
+
+var faro = initializeFaro({
+  url: process.env.REACT_APP_FARO_COLLECTOR_URL,
+  app: {
+    name: process.env.REACT_APP_FARO_COLLECTOR_NAME,
+    version: "1.0.0",
+    environment: process.env.REACT_APP_FARO_COLLECTOR_ENVIRONMENT,
+  },
+
+  instrumentations: [
+    // Mandatory, overwriting the instrumentations array would cause the default instrumentations to be omitted
+    ...getWebInstrumentations(),
+
+    // Initialization of the tracing package.
+    // This packages is optional because it increases the bundle size noticeably. Only add it if you want tracing data.
+    new TracingInstrumentation(),
+  ],
+});
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-var server = "http://localhost:8080";
+var server = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
 function App() {
   const [votes, setVotes] = useState(0);
