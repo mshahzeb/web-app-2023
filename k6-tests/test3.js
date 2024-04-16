@@ -12,9 +12,9 @@ export const options = {
   scenarios: {
     browser: {
       executor: "shared-iterations",
-      vus: 2,
-      iterations: 50,
-      maxDuration: "10s",
+      vus: 10,
+      iterations: 100,
+      maxDuration: "30s",
       options: {
         browser: {
           type: "chromium",
@@ -27,6 +27,7 @@ export const options = {
 export default async function () {
   const page = browser.newPage();
   await page.goto("http://localhost:80/");
+  page.screenshot({ path: 'screenshots/screenshot.png' });
   const button = page.locator('[data-testid="ThumbUpIcon"]');
   await button.click();
 }

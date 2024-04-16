@@ -79,10 +79,13 @@ function App() {
       .then((res) => {
         console.log("Response: " + res);
         setVotes(votes + 1);
+        faro.api.pushEvent('user clicked add vote button');
       })
       .catch((error) => {
         console.log(error);
         alert(error);
+        const customError = new Error(`error adding vote: ${error}`);
+        faro.api.pushError(customError);
       });
   }
 
@@ -92,9 +95,12 @@ function App() {
       .then((res) => {
         console.log("Response: " + res);
         setVotesDetails(res);
+        faro.api.pushEvent('votes loaded successfully');
       })
       .catch((error) => {
         console.log(error);
+        const customError = new Error(`error loading votes: ${error}`);
+        faro.api.pushError(customError);
       });
   }
 
@@ -104,10 +110,13 @@ function App() {
       .then((res) => {
         console.log("Response: " + res);
         setVotes(0);
+        faro.api.pushEvent('user clicked clear votes button');
       })
       .catch((error) => {
         console.log(error);
         alert(error);
+        const customError = new Error(`error loading votes: ${error}`);
+        faro.api.pushError(customError);
       });
   }
 
