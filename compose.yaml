@@ -33,7 +33,6 @@ services:
       - private
     volumes:
       - db-data:/var/lib/mysql
-      - /var/log/mysql:/var/log/mysql
     environment:
       - MYSQL_DATABASE=example
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
@@ -90,4 +89,4 @@ volumes:
 
 secrets:
   db-password:
-    file: db/password.txt
+    file: ./db/password.txt
